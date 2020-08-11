@@ -41,6 +41,10 @@ class TjCertificateCertificate extends CMSObject
 
 	private $client_id = 0;
 
+	private $client_issued_to = 0;
+
+	private $client_issued_to_name = "";
+
 	private $user_id = 0;
 
 	public $state = 1;
@@ -146,6 +150,58 @@ class TjCertificateCertificate extends CMSObject
 	public function getClientId()
 	{
 		return $this->client_id;
+	}
+
+	/**
+	 * Set client issued to
+	 *
+	 * @param   integer  $value  Value to set client issued to.
+	 *
+	 * @return  void.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function setClientIssuedTo($value = 0)
+	{
+		$this->client_issued_to = $value;
+	}
+
+	/**
+	 * Get client issued to
+	 *
+	 * @return  string  Client issued to.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function getClientIssuedTo()
+	{
+		return $this->client_issued_to;
+	}
+
+	/**
+	 * Set client issued to name
+	 *
+	 * @param   string  $value  Value to set client issued to name.
+	 *
+	 * @return  void.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function setClientIssuedToName($value = "")
+	{
+		$this->client_issued_to_name = $value;
+	}
+
+	/**
+	 * Get client issued to name
+	 *
+	 * @return   string  Client issued to name.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function getClientIssuedToName()
+	{
+		return $this->client_issued_to_name;
 	}
 
 	/**
@@ -432,21 +488,23 @@ class TjCertificateCertificate extends CMSObject
 	/**
 	 * Method to get issued certificate list
 	 *
-	 * @param   string   $client    Client e.g. com_tjlms.course
+	 * @param   string   $client          Client e.g. com_tjlms.course
 	 *
-	 * @param   integer  $clientId  Specific client id
+	 * @param   integer  $clientId        Specific client id
 	 *
-	 * @param   integer  $userId    User Id
+	 * @param   integer  $userId          User Id
 	 *
-	 * @param   boolean  $expired   Get expired certificates
+	 * @param   boolean  $expired         Get expired certificates
+	 *
+	 * @param   boolean  $clientIssuedTo  Client issued to
 	 *
 	 * @return  boolean|array Issued certificate array
 	 *
 	 * @since 1.0
 	 */
-	public static function getIssued($client, $clientId, $userId, $expired = false)
+	public static function getIssued($client, $clientId, $userId = 0, $expired = false, $clientIssuedTo = 0)
 	{
-		if (empty($client) || empty($clientId) || empty($userId))
+		if (empty($client) || empty($clientId))
 		{
 			return false;
 		}
@@ -455,7 +513,16 @@ class TjCertificateCertificate extends CMSObject
 
 		$model->setState('filter.client', $client);
 		$model->setState('filter.client_id', $clientId);
-		$model->setState('filter.user_id', $userId);
+
+		if (!empty($userId))
+		{
+			$model->setState('filter.user_id', $userId);
+		}
+
+		if ($clientIssuedTo)
+		{
+			$model->setState('filter.client_issued_to', $clientIssuedTo);
+		}
 
 		if ($expired)
 		{
@@ -553,7 +620,6 @@ class TjCertificateCertificate extends CMSObject
 			$pageSize       = $templateParams->get('certifcate_page_size', 'A4');
 			$orientation    = $templateParams->get('orientation', 'portrait');
 			$font           = $templateParams->get('certificate_font', 'DeJaVu Sans');
-			$style          = '';
 
 			// If the pagesize is custom then get the correct size and width.
 			if ($pageSize === 'custom')
@@ -566,22 +632,12 @@ class TjCertificateCertificate extends CMSObject
 			// If the font is custom then get the custmized font.
 			if ($font === 'custom')
 			{
-				$font      = $templateParams->get('certificate_custom_font', 'DeJaVu Sans');
-				$fontArray = explode(',', $font);
-
-				// Apply multiple google fonts.
-
-				foreach ($fontArray as $fontName)
-				{
-					$fontName = str_replace(' ', '', ucfirst($fontName));
-					$link = '<link href="https://fonts.googleapis.com/css?family=' . $fontName . '" rel="stylesheet" type="text/css">';
-					$style .= $link;
-				}
+				$font = $templateParams->get('certificate_custom_font', 'DeJaVu Sans');
 			}
 
 			require_once JPATH_SITE . "/libraries/techjoomla/dompdf/autoload.inc.php";
 
-			$html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>' . $style . '</head><body>' . $html . '</body></html>';
+			$html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head><body>' . $html . '</body></html>';
 
 			if (get_magic_quotes_gpc())
 			{

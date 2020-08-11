@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS `#__tj_certificate_issue` (
   `generated_body` text NOT NULL,
   `client` varchar(100) NOT NULL,
   `client_id` int(11) NOT NULL,
+  `client_issued_to` int(11) NOT NULL,
+  `client_issued_to_name` varchar(400) COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_id` int(11) NOT NULL,
   `comment` text NULL,
   `state` tinyint(3) NOT NULL,
